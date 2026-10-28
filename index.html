@@ -1,0 +1,507 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Stratco and JPD License Calculator</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Source+Sans+3:wght@400;500;600&family=Manrope:wght@500;600;700;800&display=swap">
+<style>
+/* Layout: a seller's worksheet. Dark ink header with live result chips; three stacked work surfaces (inputs, persona grid, summary) on a cool slate ground; access scenarios last. Focus is amber, JPD is teal, free roles are outlined, paid roles are filled. */
+:root{
+  --bg:#eef1f5; --surface:#ffffff; --surface-2:#f6f8fb; --fg:#172033; --fg-2:#4b5668; --muted:#7c8799; --line:#dde3ec; --line-2:#c9d1dd;
+  --ink:#121a2b; --ink-fg:#f3f5f9; --ink-muted:#9aa6bc;
+  --focus:#c76b00; --focus-soft:#fff0dc; --focus-fg:#5a3000;
+  --jpd:#0b7f85; --jpd-soft:#dff4f3; --jpd-fg:#064b4f;
+  --jira:#3b5bdb; --jira-soft:#e6ebfb;
+  --entry:#ffffff; --entry-line:#b9c3d2; --entry-text:#172033;
+  --strat:#2f7d4f; --prod:#b88a00; --deliv:#6b4fbb;
+  --yes:#1e8a4c; --no:#b3bccb; --cond:#c76b00; --verify:#8a3fc0; --burgundy:#7a1f3d;
+  --band-inputs:#f6f1e8; --band-persona:#fbe7d6; --band-summary:#f0e9d3; --band-access:#f2e4e2;
+  --mast:#dfe7f1; --mast-fg:#172033; --mast-muted:#5b6474; --mast-line:#b9c6d8;
+  --display:"Archivo",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+  --body:"Source Sans 3","Source Sans Pro",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+  --mono:"Manrope","Archivo",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0f141d; --surface:#171e2b; --surface-2:#1d2533; --fg:#e7ebf2; --fg-2:#b4bdcc; --muted:#8b96a9; --line:#2a3344; --line-2:#3a4558;
+  --ink:#0a0f18; --ink-fg:#f3f5f9; --ink-muted:#8d99b0;
+  --focus:#f0a040; --focus-soft:#3a2a12; --focus-fg:#ffd9a8;
+  --jpd:#3fc1c8; --jpd-soft:#0f3236; --jpd-fg:#b8eef0;
+  --jira:#8fa6ff; --jira-soft:#1d2544;
+  --entry:#0f141d; --entry-line:#46526a; --entry-text:#e7ebf2;
+  --strat:#5fb57f; --prod:#e0b23a; --deliv:#a48cf0;
+  --yes:#4fc27a; --no:#4a5567; --cond:#f0a040; --verify:#c48af0; --burgundy:#d06b8a;
+  --band-inputs:#171512; --band-persona:#241a14; --band-summary:#1f1c12; --band-access:#22181a;
+  --mast:#1b2638; --mast-fg:#e7ebf2; --mast-muted:#9aa6bc; --mast-line:#34425a;
+  color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#0f141d; --surface:#171e2b; --surface-2:#1d2533; --fg:#e7ebf2; --fg-2:#b4bdcc; --muted:#8b96a9; --line:#2a3344; --line-2:#3a4558;
+  --ink:#0a0f18; --ink-fg:#f3f5f9; --ink-muted:#8d99b0;
+  --focus:#f0a040; --focus-soft:#3a2a12; --focus-fg:#ffd9a8;
+  --jpd:#3fc1c8; --jpd-soft:#0f3236; --jpd-fg:#b8eef0;
+  --jira:#8fa6ff; --jira-soft:#1d2544;
+  --entry:#0f141d; --entry-line:#46526a; --entry-text:#e7ebf2;
+  --strat:#5fb57f; --prod:#e0b23a; --deliv:#a48cf0;
+  --yes:#4fc27a; --no:#4a5567; --cond:#f0a040; --verify:#c48af0; --burgundy:#d06b8a;
+  --band-inputs:#171512; --band-persona:#241a14; --band-summary:#1f1c12; --band-access:#22181a;
+  --mast:#1b2638; --mast-fg:#e7ebf2; --mast-muted:#9aa6bc; --mast-line:#34425a;
+  color-scheme:dark }
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.5;margin:0;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 56px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--mast)}
+.wrap{display:grid;gap:0}
+h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance;letter-spacing:-.01em}
+h1{font-size:28px;font-weight:800;line-height:1.1}
+h2{font-size:20px;font-weight:700}
+h3{font-size:15px;font-weight:700}
+p{margin:0}
+.eyebrow{font-family:var(--display);font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.muted{color:var(--muted)} .fg2{color:var(--fg-2)}
+.num,.kpi .v,.line .n,td.count,tr.subtotal td,tr.grand td,.field input,.field select,td.cell input,.line .n input{font-variant-numeric:tabular-nums}
+
+/* Masthead */
+.mast{background:var(--mast);color:var(--mast-fg);border-bottom:4px solid var(--burgundy);margin-left:calc(-1 * max(16px,env(safe-area-inset-left,0px)));margin-right:calc(-1 * max(16px,env(safe-area-inset-right,0px)));
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 24px}
+.mast .in{max-width:1360px;margin:0 auto;display:grid;gap:22px}
+.mast .top{display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:flex-start}
+.mast .eyebrow{color:var(--mast-muted)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.kpi{background:var(--surface);border:1px solid var(--mast-line);border-top:4px solid var(--burgundy);border-radius:6px;padding:12px 14px;display:grid;gap:2px;min-width:0}
+.kpi.focus{border-top-color:var(--focus)} .kpi.jpd{border-top-color:var(--jpd)}
+.kpi .l{font-size:12px;color:var(--fg-2);letter-spacing:.02em}
+.kpi .v{font-family:var(--mono);font-size:24px;font-weight:600;line-height:1.1}
+.kpi.focus .v{color:var(--focus)} .kpi.jpd .v{color:var(--jpd)}
+.kpi .s{font-size:12px;color:var(--muted)}
+button{font:inherit;font-family:var(--display);font-weight:600;font-size:13px;padding:8px 14px;border:1px solid var(--mast-line);background:var(--surface);color:var(--mast-fg);border-radius:4px;cursor:pointer}
+button:hover{border-color:var(--mast-fg)} button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+
+section{display:grid;gap:14px;min-width:0;max-width:1360px;margin:0 auto;width:100%}
+.band{margin-left:calc(-1 * max(16px,env(safe-area-inset-left,0px)));margin-right:calc(-1 * max(16px,env(safe-area-inset-right,0px)));
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:30px 36px;border-top:1px solid var(--line-2)}
+.band.inputs-band{background:var(--band-inputs);border-top:0}
+.band.persona-band{background:var(--band-persona)}
+.band.summary-band{background:var(--band-summary)}
+.band.access-band{background:var(--band-access)}
+.sechead{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:baseline;justify-content:space-between}
+.sechead h2{font-size:22px;padding-bottom:6px;border-bottom:3px solid var(--fg);display:inline-block}
+.sechead p{color:var(--fg-2);max-width:72ch}
+.surface{background:var(--surface);border:1px solid var(--line);border-radius:6px}
+
+/* Inputs */
+.inputs{display:grid;grid-template-columns:1fr;gap:0}
+.heurinfo{display:flex;flex-wrap:wrap;gap:4px 16px;align-items:baseline;font-size:13px;color:var(--fg-2)}
+.heurinfo b{font-family:var(--display);font-weight:700;color:var(--fg);margin-right:4px}
+.heurinfo .minnote{flex-basis:100%}
+.fields{display:grid;grid-template-columns:minmax(0,420px);justify-content:center;gap:18px 22px;padding:28px 22px}
+.fields .field label{font-size:14px;text-align:center}
+.fields .field input{font-size:28px;font-weight:700;text-align:center;padding:14px 16px}
+@media (max-width:720px){ .fields{grid-template-columns:repeat(2,minmax(0,1fr))} }
+@media (max-width:460px){ .fields{grid-template-columns:1fr} }
+.field{display:grid;gap:5px;min-width:0}
+.field label{font-size:12px;font-weight:600;color:var(--fg-2);letter-spacing:.02em}
+.field input,.field select{font:inherit;font-family:var(--mono);font-weight:600;font-size:15px;padding:9px 11px;border:1px solid var(--entry-line);background:var(--entry);color:var(--entry-text);border-radius:6px;width:100%;min-width:0;box-shadow:inset 0 1px 2px rgba(0,0,0,.04)}
+.field input:hover,.field select:hover{border-color:var(--fg-2)}
+.field input:focus-visible,.field select:focus-visible,.cell input:focus-visible{outline:2px solid var(--ink);outline-offset:1px}
+.heur{border-left:1px solid var(--line);padding:20px 22px;display:grid;gap:10px;align-content:start;min-width:280px}
+.heur table{width:100%;border-collapse:collapse;font-size:13px}
+.heur th{text-align:left;font-weight:600;color:var(--fg-2);padding:4px 6px;border-bottom:1px solid var(--line)}
+.heur td{padding:6px 6px;border-bottom:1px solid var(--line)}
+.heur td.pct{text-align:right}
+.heur td.pct input{width:56px;text-align:right;font-family:var(--mono);border:1px solid var(--entry-line);background:var(--entry);color:var(--entry-text);padding:3px 5px;border-radius:3px}
+.heur p{font-size:12px;color:var(--muted)}
+
+/* Persona grid */
+.keyrow{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px;color:var(--fg-2);align-items:center}
+.chip{display:inline-flex;align-items:center;justify-content:center;font-family:var(--display);font-size:11px;font-weight:700;letter-spacing:.06em;min-width:36px;height:22px;padding:0 7px;border-radius:999px;border:1.5px solid transparent}
+.chip.focus.paid{background:var(--focus);color:#fff;border-color:var(--focus)}
+.chip.focus.free{background:var(--focus-soft);color:var(--focus-fg);border-color:var(--focus)}
+.chip.jpd.paid{background:var(--jpd);color:#fff;border-color:var(--jpd)}
+.chip.jpd.free{background:var(--jpd-soft);color:var(--jpd-fg);border-color:var(--jpd)}
+.chip.jira{background:var(--jira-soft);color:var(--jira);border-color:var(--jira)}
+.chip.off{display:none}
+.scroll{overflow-x:auto;min-width:0}
+table.grid{border-collapse:separate;border-spacing:0;width:100%;font-size:14px;min-width:1120px}
+.grid th,.grid td{padding:9px 10px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+.grid thead{position:sticky;top:env(safe-area-inset-top,0px);z-index:3}
+.grid thead th{background:var(--surface);font-weight:600;font-size:12.5px;color:var(--fg-2)}
+.grid thead tr.span th{background:var(--surface)}
+.grid thead tr.cols th{background:var(--surface);box-shadow:0 2px 0 var(--line-2)}
+.pscroll{overflow-x:auto;min-width:0}
+@media (min-width:1200px){ .pscroll{overflow:visible} }
+.grid thead tr.span th{border-bottom:0;padding-bottom:2px;font-family:var(--display);font-size:12px;letter-spacing:.06em;text-transform:uppercase;text-align:center}
+.grid thead tr.span th.f{color:var(--focus);box-shadow:inset 0 3px 0 var(--focus)}
+.grid thead tr.span th.j{color:var(--jpd);box-shadow:inset 0 3px 0 var(--jpd)}
+.grid thead tr.span th.e{color:var(--fg-2);box-shadow:inset 0 3px 0 var(--line-2)}
+.grid thead tr.span th.ji{color:var(--jira);box-shadow:inset 0 3px 0 var(--jira)}
+.grid thead tr.cols th{border-bottom:0;vertical-align:top}
+.grid thead tr.cols th small{display:block;font-weight:500;color:var(--muted);font-size:11px;letter-spacing:.02em}
+.grid th.c,.grid td.c{text-align:center}
+.grid th.r,.grid td.r{text-align:right}
+.grid td.c{width:92px}
+tr.group td{padding:10px 12px;border-bottom:0;background:color-mix(in srgb,var(--g) 18%,var(--surface));border-left:3px solid var(--g)}
+tr.group .gl{display:inline-flex;align-items:center;gap:10px;font-family:var(--display);font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--fg)}
+tr.group .gl::before{content:"";width:10px;height:10px;border-radius:2px;background:var(--g)}
+tr.group td{display:table-cell}
+tr.group .gshare{float:right;font-size:13px;color:var(--fg-2);display:inline-flex;align-items:center;gap:6px}
+tr.group .gshare input{font:inherit;font-family:var(--mono);font-weight:700;font-size:14px;width:64px;text-align:right;padding:3px 6px;border:1px solid var(--entry-line);background:var(--entry);color:var(--entry-text);border-radius:4px}
+tr.group .gshare #gp_deliv{font-family:var(--mono);font-weight:700;font-size:14px}
+tr.subtotal td.warn{color:var(--cond)}
+tr.group.strat{--g:var(--strat)} tr.group.prod{--g:var(--prod)} tr.group.deliv{--g:var(--deliv)}
+tr.persona td:first-child{font-weight:600;border-left:3px solid var(--g);padding-left:12px}
+tr.persona.strat{--g:var(--strat)} tr.persona.prod{--g:var(--prod)} tr.persona.deliv{--g:var(--deliv)}
+.grid .pcol{min-width:230px;width:250px}
+tr.persona td.desc{color:var(--muted);font-size:13px;min-width:300px;max-width:440px}
+tr.persona td.desc b{color:var(--fg);font-weight:600}
+td.cell{background:var(--surface-2);width:110px}
+td.cell input{font:inherit;font-family:var(--mono);font-weight:600;font-size:13px;width:66px;padding:4px 6px;border:1px solid var(--entry-line);background:var(--entry);color:var(--entry-text);text-align:right;border-radius:4px}
+td.cell .u{color:var(--muted);font-size:12px;margin-left:3px}
+td.count{font-family:var(--mono);font-weight:600;width:84px}
+tr.subtotal td{background:var(--surface-2);font-size:13px;color:var(--fg-2);border-bottom:1px solid var(--line-2)}
+tr.subtotal td:first-child{font-family:var(--display);font-weight:600;letter-spacing:.04em;text-transform:uppercase;font-size:12px}
+tr.subtotal td.r,tr.subtotal td.c{font-family:var(--mono);font-weight:500}
+tr.rest td{color:var(--muted);font-size:13px}
+tr.rest td.r{font-weight:600;color:var(--fg-2)}
+tr.rest td.warn{color:var(--cond);font-weight:600}
+tr.tothead td{padding-top:18px;border-bottom:2px solid var(--line-2);font-size:12px;font-weight:600;color:var(--fg-2);line-height:1.3;text-align:center;vertical-align:top}
+tr.tothead td.r{text-align:right;padding-top:46px}
+tr.tothead .chip{margin-bottom:6px}
+tr.grand td{background:var(--surface);color:var(--fg);font-family:var(--mono);font-weight:600;font-size:17px;border-top:2px solid var(--burgundy);border-bottom:2px solid var(--burgundy);padding-block:12px}
+tr.grand td:first-child{font-family:var(--display);letter-spacing:.06em;text-transform:uppercase;font-size:13px;border-left:2px solid var(--burgundy);color:var(--burgundy)}
+tr.grand td:last-child{border-right:2px solid var(--burgundy)}
+tr.grand td.fcol{color:var(--focus)} tr.grand td.jcol{color:var(--jpd)}
+
+/* Summary */
+.summary{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.sumgroup{display:grid;gap:12px}
+.sumlabel{font-family:var(--display);font-size:18px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--fg);display:inline-flex;align-items:center;gap:10px}
+.sumlabel::before{content:"";width:14px;height:14px;border-radius:3px;background:var(--burgundy)}
+section>.sumgroup+.sumgroup{margin-top:10px}
+.block .bh h3.hf{color:var(--focus)} .block .bh h3.hj{color:var(--jpd)}
+@media (max-width:900px){ .summary{grid-template-columns:1fr} }
+.block{padding:0;overflow:hidden}
+.block .bh{display:flex;justify-content:space-between;align-items:baseline;padding:14px 20px;border-bottom:1px solid var(--line);background:var(--surface-2)}
+.block .bh h3{font-size:14px;letter-spacing:.08em;text-transform:uppercase}
+.block .bh .tag{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.line{display:grid;grid-template-columns:1fr auto;gap:4px 18px;padding:13px 20px;border-bottom:1px solid var(--line);align-items:center}
+.line:last-child{border-bottom:0}
+.line .k{font-weight:500}
+.line .n{font-family:var(--mono);font-size:16px;font-weight:500;text-align:right;white-space:nowrap;color:var(--fg)}
+.line .n input{font:inherit;font-family:var(--mono);font-size:16px;font-weight:700;width:110px;text-align:right;padding:4px 8px;border:1px solid var(--entry-line);background:var(--entry);color:var(--entry-text);border-radius:6px}
+.line .n input:focus-visible{outline:2px solid var(--ink);outline-offset:1px}
+.line .note{grid-column:1 / -1;font-size:12.5px;color:var(--muted)}
+.line.total{background:var(--surface-2)}
+.warn{color:var(--cond);font-weight:600}
+
+/* Scenarios */
+table.matrix{border-collapse:separate;border-spacing:0;width:100%;font-size:14px;min-width:1000px}
+.matrix th,.matrix td{padding:10px 10px;border-bottom:1px solid var(--line);vertical-align:bottom}
+.matrix thead th{font-size:12px;font-weight:600;color:var(--fg-2);text-align:center;min-width:88px;line-height:1.3;border-bottom:2px solid var(--line-2);background:var(--surface);position:sticky;top:0}
+.matrix thead th:first-child{text-align:left;min-width:230px}
+.matrix thead th.f{box-shadow:inset 0 3px 0 var(--focus)} .matrix thead th.j{box-shadow:inset 0 3px 0 var(--jpd)} .matrix thead th.x{box-shadow:inset 0 3px 0 var(--jira)}
+.matrix td.combo{font-weight:600;vertical-align:middle}
+.matrix td.combo small{display:block;font-weight:400;color:var(--muted);font-size:12.5px}
+.matrix td.cap{text-align:center;vertical-align:middle}
+.pill{display:inline-flex;align-items:center;justify-content:center;width:34px;height:24px;border-radius:999px;font-family:var(--mono);font-size:12px;font-weight:600}
+.pill.y{background:var(--yes);color:#fff} .pill.n{color:var(--no);border:1px solid var(--line-2)} .pill.c{background:var(--focus-soft);color:var(--cond);border:1px solid var(--cond)} .pill.v{background:transparent;color:var(--verify);border:1.5px dashed var(--verify)}
+.keys{display:flex;flex-wrap:wrap;gap:10px 22px;font-size:13px;color:var(--fg-2);align-items:center;padding:12px 20px;border-top:1px solid var(--line)}
+.keys span{display:inline-flex;align-items:center;gap:8px}
+ol.foot{margin:0;padding:12px 20px 16px 40px;font-size:13px;color:var(--fg-2);display:grid;gap:4px;border-top:1px solid var(--line)}
+ol.foot b{font-family:var(--mono)}
+.roles{display:grid;gap:22px}
+.rolerow{display:grid;gap:8px}
+.rowlabel{font-family:var(--display);font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.rowlabel.focus{color:var(--focus)} .rowlabel.jpd{color:var(--jpd)} .rowlabel.jira{color:var(--jira)}
+.rowcards{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.rowcards.n1{grid-template-columns:minmax(280px,1fr)}
+.rowcards.n2{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.rowcards.n3{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.role{padding:0;display:grid;grid-template-rows:auto 1fr;overflow:hidden;border-top:4px solid var(--rc)}
+.role.focus{--rc:var(--focus)} .role.jpd{--rc:var(--jpd)} .role.jira{--rc:var(--jira)}
+.role .rh{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px 18px 10px}
+.role .rh h3{font-size:16px}
+.role .needs{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:0 18px 10px}
+.role .lists{display:grid;gap:12px;padding:12px 18px 18px;border-top:1px solid var(--line)}
+.role h4{margin:0 0 4px;font-family:var(--display);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-2)}
+.role ul{margin:0;padding-left:18px;font-size:14px;color:var(--fg-2);display:grid;gap:3px}
+.role ul li.no{color:var(--muted)}
+.role h4.hf{color:var(--focus)} .role h4.hj{color:var(--jpd)}
+.qas{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:14px}
+.qa{padding:18px 20px;display:grid;gap:8px;align-content:start}
+.qa h3{font-size:15px;line-height:1.3}
+.qa p{font-size:14px;color:var(--fg-2)}
+.qa .who{display:flex;gap:6px;flex-wrap:wrap}
+@media print{ body{background:#fff;color:#000;padding-block:0} .band{background:#fff !important;border-top:1px solid #999;padding-block:14px;break-inside:avoid} .mast{background:#fff;color:#000;border-bottom:2px solid #000} .kpi{border-top-width:2px} .mast .eyebrow,.kpi .l,.kpi .s{color:#333} .kpi{background:#fff;border:1px solid #999} .kpis{background:#fff;border:0;gap:8px} button{display:none} .surface{box-shadow:none} .scroll{overflow:visible} table.grid{min-width:0;font-size:11px} .grid th,.grid td{padding:4px 6px} .chip{border-width:1px;height:18px;min-width:30px;font-size:9px} .role,.block{break-inside:avoid} }
+@media (max-width:600px){ h1{font-size:23px} .kpi .v{font-size:20px} body{font-size:14px} }
+</style>
+
+<div class="wrap">
+<header class="mast"><div class="in">
+  <div class="top">
+    <div>
+      <div class="eyebrow">Strategy Collection + Jira Product Discovery</div>
+      <h1>Stratco and JPD License Calculator</h1>
+    </div>
+    <button id="reset" type="button">Reset to defaults</button>
+  </div>
+  <div class="kpis">
+    <div class="kpi focus"><span class="l">Estimated Strategy Collection Seats</span><span class="v" id="kSc">–</span></div>
+    <div class="kpi jpd"><span class="l">Estimated JPD Seats</span><span class="v" id="kJc">–</span></div>
+    <div class="kpi"><span class="l">Total annual list</span><span class="v" id="kTot">–</span><span class="s">before program discount</span></div>
+    <div class="kpi"><span class="l">People who see it free</span><span class="v" id="kFree">–</span><span class="s">no paid seat; counted once each</span></div>
+  </div>
+</div></header>
+
+<div class="band inputs-band"><section>
+  <div class="sechead"><h2>Inputs</h2><div class="heurinfo"><span class="minnote"><b>Strategy Collection minimum</b> 50 seats</span><span><b>Strategy Collection</b> $129 per user per month</span><span><b>JPD Premium</b> $26.25 per creator per month</span><span><b>Assumes</b> Premium+ Jira usage</span></div></div>
+  <div class="surface inputs">
+    <div class="fields">
+      <div class="field"><label for="headcount">Total headcount requiring licenses</label><input id="headcount" type="number" min="1" step="1" value="1000"></div>
+    </div>
+</div>
+  </div>
+</section></div>
+
+<div class="band persona-band"><section>
+  <div class="sechead"><h2>Persona sizing</h2></div>
+  <div class="keyrow">
+    <span><span class="chip focus paid">PAID</span> Focus paid seat</span>
+    <span><span class="chip focus free">FREE</span> Focus Viewer</span>
+    <span><span class="chip jpd paid">PAID</span> JPD Creator</span>
+    <span><span class="chip jpd free">FREE</span> JPD Contributor or Viewer</span>
+    <span><span class="chip jira">JIRA</span> Holds a Jira seat</span>
+    <span class="muted">Boxed cells are editable.</span>
+  </div>
+  <div class="surface pscroll"><table class="grid" id="personas">
+    <thead>
+      <tr class="span"><th colspan="2"></th><th colspan="3" class="e">Data entry</th><th class="ji">Jira</th><th colspan="2" class="f">Strategy Collection</th><th colspan="3" class="j">Jira Product Discovery</th></tr>
+      <tr class="cols">
+        <th class="pcol">Persona</th><th>Who they are and what they do</th>
+        <th class="r">Default %<small>of group</small></th><th class="r">Override<small>count, optional</small></th><th class="r">Count<small>people</small></th>
+        <th class="c">Jira seat<small>informational</small></th>
+        <th class="c">Paid seat<small>paid</small></th><th class="c">Viewer<small>free</small></th>
+        <th class="c">Creator<small>paid</small></th><th class="c">Contributor<small>free</small></th><th class="c">Viewer<small>free, no Jira seat</small></th>
+      </tr>
+    </thead>
+    <tbody id="pbody"></tbody>
+  </table></div>
+</section></div>
+
+<div class="band summary-band"><section>
+  <div class="sechead"><h2>Summary</h2></div>
+  <div class="sumgroup">
+    <div class="sumlabel">Paid</div>
+    <div class="summary">
+      <div class="surface block">
+        <div class="bh"><h3 class="hf">Strategy Collection</h3></div>
+        <div class="line"><span class="k">Paid seats from personas</span><span class="n" id="sSc"></span></div>
+        <div class="line"><span class="k">Estimated seats</span><span class="n"><input id="qSc" type="number" min="50" step="1" aria-label="Estimated Strategy Collection seats"></span></div>
+        <div class="line"><span class="k">Price per user per month</span><span class="n" id="sScP"></span></div>
+        <div class="line total"><span class="k">Annual list cost</span><span class="n" id="sScC"></span></div>
+      </div>
+      <div class="surface block">
+        <div class="bh"><h3 class="hj">JPD</h3></div>
+        <div class="line"><span class="k">Creators</span><span class="n" id="sJc"></span></div>
+        <div class="line"><span class="k">Estimated seats</span><span class="n"><input id="qJc" type="number" min="0" step="1" aria-label="Estimated JPD seats"></span></div>
+        <div class="line"><span class="k">Price per creator per month</span><span class="n" id="sJp"></span></div>
+        <div class="line total"><span class="k">Annual list cost</span><span class="n" id="sJcC"></span></div>
+      </div>
+    </div>
+    <div class="surface block"><div class="line total"><span class="k">Total annual list cost</span><span class="n" id="sTot"></span></div></div>
+  </div>
+  <div class="sumgroup">
+    <div class="sumlabel">Free</div>
+    <div class="summary">
+      <div class="surface block">
+        <div class="bh"><h3 class="hf">Strategy Collection</h3></div>
+        <div class="line"><span class="k">Focus Viewers</span><span class="n" id="sFv"></span></div>
+      </div>
+      <div class="surface block">
+        <div class="bh"><h3 class="hj">JPD</h3></div>
+        <div class="line"><span class="k">JPD Contributors</span><span class="n" id="sJco"></span></div>
+        <div class="line"><span class="k">JPD Viewers</span><span class="n" id="sJv"></span></div>
+      </div>
+    </div>
+    <div class="surface block">
+      <div class="line"><span class="k">People holding a Jira seat</span><span class="n" id="sJira"></span></div>
+      <div class="line total"><span class="k">Distinct people with some visibility</span><span class="n" id="sVis"></span></div>
+    </div>
+  </div>
+</section></div>
+
+<div class="band access-band"><section>
+  <div class="sechead"><h2>Role detail</h2></div>
+  <div class="roles" id="roles"></div>
+</section></div>
+</div>
+
+<script>
+(function(){
+  const G = {strat:"Strategy and Planning", prod:"Product", deliv:"Delivery"};
+  const GROUP_DEFAULT = {strat:20, prod:20};
+  let groupPct = {strat:20, prod:20};
+  // [persona, titles, what, defaultPct, overrideDefault, jira, focusPaid, focusView, jpdCreator, jpdContrib, jpdViewer, group]
+  const DEFAULTS = [
+    ["Executive leadership","CEO, COO, CFO, CTO, SVP/EVP","Define strategic priorities; own Focus Areas; approve investment.",11.3,"",1,1,0,0,0,1,"strat"],
+    ["Finance partners","FP&A, finance business partners","Review Funds data on Focus Areas; validate investment traceability.",5.6,"",1,1,0,0,0,0,"strat"],
+    ["Operations / PMO / portfolio and strategy ops","Head of Operations, VP PMO, Head of Strategy, portfolio managers","Run quarterly planning; map capacity in Talent; roll JPD roadmaps into the portfolio view. The Ops Leader persona.",16.4,"",1,1,0,1,0,0,"strat"],
+    ["Program leads / chiefs of staff","Chief of Staff, Head of PMO, Program Manager","Manage Focus Areas day to day; coordinate planning across product and strategy teams. The champion.",13.6,"",1,1,0,1,0,0,"strat"],
+    ["Functional leaders who run OKR or delivery programs","Engineering directors, department heads with OKR ownership","Link goals and work to Focus Areas regularly; attend QBRs.",25.4,"",1,1,0,0,1,0,"strat"],
+    ["Internal stakeholders without a Jira seat","VPs of impacted functions, marketing, legal, HR partners","Review shared roadmap views; follow Goals; give direction on product bets.",27.7,"",0,0,0,0,0,1,"strat"],
+    ["Product organization leaders","CPO, VP Product, Group PMs","Own the product roadmap; connect JPD ideas to Focus Areas. The Org Leader persona.",9,"",1,1,0,1,0,0,"prod"],
+    ["Product operations / analysts","Product Ops, Product Analyst","Maintain JPD views, scoring fields, and roadmap hygiene.",45.5,"",1,0,1,1,0,0,"prod"],
+    ["Product managers / product owners","PM, Senior PM, Product Owner","Create and prioritize ideas, build fields and views, run discovery; promote ideas to Jira epics.",45.5,"",1,0,1,1,0,0,"prod"],
+    ["External advisory participants","Customer advisory board, user focus groups, design partners","React to shared roadmap views; vote and comment through published views or forms. Not a % of the group: use the override.",0,20,0,0,0,0,0,1,"prod"],
+    ["Other mid-level managers (consume only)","Engineering managers, team leads not running planning","Need to see how their teams' work rolls up; do not create or edit Focus Areas.",4.2,"",1,0,1,0,1,0,"deliv"],
+    ["Engineers, designers, delivery ICs","Developers, QA, UX, delivery leads","Deliver the work; comment, vote and add insights on ideas; see their work roll up to Focus Areas.",65.5,"",1,0,1,0,1,0,"deliv"],
+    ["Customer-facing staff with Jira or JSM access","Sales engineers, support, customer success","Submit insights and vote on ideas; occasionally view the roadmap.",30.3,"",1,0,0,0,1,0,"deliv"]
+  ];
+  const INPUT_IDS = ["headcount"];
+  const SC_MIN = 50, SC_PRICE = 129, JPD_PRICE = 26.25;
+  const FLAGS = ["jira","fp","fv","jc","jco","jv"];
+  const CHIP = {jira:["chip jira","JIRA"], fp:["chip focus paid","PAID"], fv:["chip focus free","FREE"], jc:["chip jpd paid","PAID"], jco:["chip jpd free","FREE"], jv:["chip jpd free","FREE"]};
+  const KEY = "stratco-jpd-calc-v4";
+  const $ = id => document.getElementById(id);
+  const fmtN = n => n.toLocaleString("en-US");
+  const fmt$ = n => "$" + Math.round(n).toLocaleString("en-US");
+  let rows = DEFAULTS.map(d => ({pct:d[3], ovr:d[4]}));
+  let quote = {sc:"", jc:""};
+
+  function flagCells(d){ return FLAGS.map((f,k) => `<td class="c">${d[5+k] ? `<span class="${CHIP[f][0]}">${CHIP[f][1]}</span>` : ""}</td>`).join(""); }
+  function subtotalRow(g){
+    const tr = document.createElement("tr"); tr.className = "subtotal";
+    tr.innerHTML = `<td colspan="4">${G[g]} subtotal</td><td class="r" id="sub_${g}_count"></td>` + FLAGS.map(f => `<td class="c" id="sub_${g}_${f}"></td>`).join("");
+    return tr;
+  }
+  function buildTable(){
+    const tb = $("pbody"); tb.innerHTML = ""; let last = null;
+    DEFAULTS.forEach((d,i) => {
+      if (d[11] !== last) {
+        if (last) tb.appendChild(subtotalRow(last));
+        const g = document.createElement("tr"); g.className = "group " + d[11];
+        const k = d[11];
+        const ctl = k === "deliv" ? `<span class="gshare"><span id="gp_deliv">60</span>% of headcount · the remainder</span>` : `<span class="gshare"><input type="number" min="0" max="100" step="1" data-g="${k}" id="gp_${k}" aria-label="${G[k]} share of headcount">% of headcount</span>`;
+        g.innerHTML = `<td colspan="11"><span class="gl">${G[k]}</span>${ctl}</td>`; tb.appendChild(g); last = k;
+      }
+      const tr = document.createElement("tr"); tr.className = "persona " + d[11];
+      tr.innerHTML = `<td class="pcol">${d[0]}</td><td class="desc"><b>${d[1]}:</b> ${d[2]}</td>
+        <td class="cell r"><input type="number" min="0" max="100" step="0.1" data-k="pct" data-i="${i}" id="pct${i}" aria-label="Default % for ${d[0]}"></td>
+        <td class="cell r"><input type="number" min="0" step="1" data-k="ovr" data-i="${i}" id="ovr${i}" placeholder="–" aria-label="Override count for ${d[0]}"></td>
+        <td class="count r" id="cnt${i}"></td>${flagCells(d)}`;
+      tb.appendChild(tr);
+    });
+    tb.appendChild(subtotalRow(last));
+    const th = document.createElement("tr"); th.className = "tothead";
+    th.innerHTML = `<td colspan="4"></td><td class="r">People</td><td class="c"><span class="chip jira">JIRA</span><br>Jira seat</td><td class="c"><span class="chip focus paid">PAID</span><br>Focus paid seat</td><td class="c"><span class="chip focus free">FREE</span><br>Focus Viewer</td><td class="c"><span class="chip jpd paid">PAID</span><br>JPD Creator</td><td class="c"><span class="chip jpd free">FREE</span><br>JPD Contributor</td><td class="c"><span class="chip jpd free">FREE</span><br>JPD Viewer</td>`;
+    tb.appendChild(th);
+    const grand = document.createElement("tr"); grand.className = "grand";
+    grand.innerHTML = `<td colspan="4">License totals</td><td class="r" id="totCount"></td>` + FLAGS.map(f => `<td class="c ${f==="fp"||f==="fv"?"fcol":f==="jira"?"":"jcol"}" id="tot_${f}"></td>`).join("");
+    tb.appendChild(grand);
+  }
+  function readInputs(){
+    const v = id => $(id).value;
+    return { headcount:+v("headcount")||0, scPrice:SC_PRICE, scMin:SC_MIN, jpdPrem:JPD_PRICE };
+  }
+  function compute(){
+    const inp = readInputs();
+    const tot = {count:0}; FLAGS.forEach(f => tot[f]=0);
+    const sub = {}; Object.keys(G).forEach(g => { sub[g] = {count:0}; FLAGS.forEach(f => sub[g][f]=0); });
+    let employees = 0, distinct = 0, freeOnly = 0;
+    const gp = {strat: Math.min(100, Math.max(0, +groupPct.strat||0)), prod: Math.min(100, Math.max(0, +groupPct.prod||0))};
+    gp.deliv = Math.max(0, 100 - gp.strat - gp.prod);
+    if (document.activeElement !== $("gp_strat")) $("gp_strat").value = gp.strat;
+    if (document.activeElement !== $("gp_prod")) $("gp_prod").value = gp.prod;
+    $("gp_deliv").textContent = gp.deliv;
+    const pctSum = {strat:0, prod:0, deliv:0};
+    DEFAULTS.forEach((d,i) => {
+      const r = rows[i];
+      const useOvr = !(r.ovr === "" || r.ovr === null);
+      if (!useOvr) pctSum[d[11]] += (+r.pct||0);
+      const count = !useOvr ? Math.round(inp.headcount * gp[d[11]] / 100 * (+r.pct||0) / 100) : Math.max(0, Math.round(+r.ovr||0));
+      $("cnt"+i).textContent = fmtN(count);
+      const g = d[11]; sub[g].count += count; tot.count += count;
+      FLAGS.forEach((f,k) => { sub[g][f] += d[5+k]*count; tot[f] += d[5+k]*count; });
+      if (i !== 9) employees += count;
+      if (d[6]||d[7]||d[8]||d[9]||d[10]) distinct += count;
+      if (!(d[6]||d[8]) && (d[7]||d[9]||d[10])) freeOnly += count;
+    });
+    Object.keys(G).forEach(g => { $(`sub_${g}_count`).textContent = fmtN(sub[g].count); FLAGS.forEach(f => $(`sub_${g}_${f}`).textContent = fmtN(sub[g][f])); });
+    $("totCount").textContent = fmtN(tot.count); FLAGS.forEach(f => $("tot_"+f).textContent = fmtN(tot[f]));
+
+    const scSug = Math.max(tot.fp, inp.scMin);
+    const scQ = quote.sc === "" ? scSug : Math.max(SC_MIN, Math.round(+quote.sc||0));
+    const jcQ = quote.jc === "" ? tot.jc : Math.max(0, Math.round(+quote.jc||0));
+    const jpdPrice = inp.jpdPrem;
+    const scCost = scQ * inp.scPrice * 12, jpdCost = jcQ * jpdPrice * 12;
+    if (document.activeElement !== $("qSc")) $("qSc").value = scQ;
+    if (document.activeElement !== $("qJc")) $("qJc").value = jcQ;
+    $("sSc").textContent = fmtN(tot.fp); $("sScP").textContent = "$" + inp.scPrice.toFixed(2); $("sScC").textContent = fmt$(scCost);
+    $("sJc").textContent = fmtN(tot.jc); $("sJp").textContent = "$" + jpdPrice.toFixed(2);
+    $("sJcC").textContent = fmt$(jpdCost); $("sTot").textContent = fmt$(scCost + jpdCost);
+    $("sFv").textContent = fmtN(tot.fv); $("sJco").textContent = fmtN(tot.jco); $("sJv").textContent = fmtN(tot.jv);
+    $("sJira").textContent = fmtN(tot.jira);
+    $("sVis").textContent = fmtN(distinct);
+    $("kSc").textContent = fmtN(scQ);
+    $("kJc").textContent = fmtN(jcQ);
+    $("kTot").textContent = fmt$(scCost + jpdCost);
+    $("kFree").textContent = fmtN(freeOnly);
+    save();
+  }
+  function save(){ try { const s = {inputs:{}, rows, quote, groupPct}; INPUT_IDS.forEach(id => s.inputs[id] = $(id).value); localStorage.setItem(KEY, JSON.stringify(s)); } catch(e){} }
+  function load(){ try { const s = JSON.parse(localStorage.getItem(KEY)); if (!s) return;
+      INPUT_IDS.forEach(id => { if (s.inputs && s.inputs[id] !== undefined) $(id).value = s.inputs[id]; });
+      if (Array.isArray(s.rows) && s.rows.length === DEFAULTS.length) rows = s.rows;
+      if (s.quote) quote = {sc: s.quote.sc ?? "", jc: s.quote.jc ?? ""};
+      if (s.groupPct) groupPct = {strat: s.groupPct.strat ?? 20, prod: s.groupPct.prod ?? 20}; } catch(e){} }
+  function paintRows(){ DEFAULTS.forEach((d,i) => { $("pct"+i).value = rows[i].pct; $("ovr"+i).value = rows[i].ovr; }); }
+
+  const ROLES = [
+    {cls:"jira", chip:"chip jira", chipText:"JIRA", name:"Jira seat only",
+     focus:["View Goals"],
+     jpd:["See the Idea field in Jira Plans: group by Idea, preview ideas","See JPD Roadmaps (JPD Premium)","Act as a free JPD Contributor by default"]},
+    {cls:"focus", chip:"chip focus paid", chipText:"PAID", name:"StratCo paid seat",
+     focus:["Full access"],
+     jpd:["Same as Jira seat only"]},
+    {cls:"focus", chip:"chip focus free", chipText:"FREE", name:"StratCo Viewer",
+     focus:["View everything in Focus: Focus Areas, goals, work, updates","Star and follow Focus Areas and views","Comment and react on updates","Cannot create or edit Focus Areas, Talent or Funds"],
+     jpd:["Same as Jira seat only"]},
+    {cls:"jpd", chip:"chip jpd paid", chipText:"PAID", name:"JPD Creator",
+     focus:["Link ideas to Goals and Focus Areas"],
+     jpd:["Full access"]},
+    {cls:"jpd", chip:"chip jpd free", chipText:"FREE", name:"JPD Contributor",
+     focus:[],
+     jpd:["Open JPD projects read-only","Comment, vote, react and add insights on ideas","Submit ideas where the project admin enables it"]},
+    {cls:"jpd", chip:"chip jpd free", chipText:"FREE", name:"JPD Viewer", needs:"No Jira seat needed. Atlassian account only.",
+     focus:[],
+     jpd:["See the views a Creator publishes to them, such as a roadmap","Vote and comment on those published views"]}
+  ];
+  const li = x => `<li class="${/^(Cannot|No )/.test(x) ? "no" : ""}">${x}</li>`;
+  function roleCard(r){ return `<div class="surface role ${r.cls}">
+      <div><div class="rh"><h3>${r.name}</h3><span class="${r.chip}">${r.chipText}</span></div>${r.needs ? `<div class="needs">${r.needs}</div>` : ""}</div>
+      <div class="lists">${r.focus.length ? `<div><h4 class="hf">Strategy Collection</h4><ul>${r.focus.map(li).join("")}</ul></div>` : ""}${r.jpd.length ? `<div><h4 class="hj">JPD</h4><ul>${r.jpd.map(li).join("")}</ul></div>` : ""}</div>
+    </div>`; }
+  function buildRoles(){
+    const groups = [["jira","Jira seat only"],["focus","Strategy Collection"],["jpd","Jira Product Discovery"]];
+    $("roles").innerHTML = groups.map(([k,label]) => `<div class="rolerow"><div class="rowlabel ${k}">${label}</div><div class="rowcards n${ROLES.filter(r=>r.cls===k).length}">${ROLES.filter(r=>r.cls===k).map(roleCard).join("")}</div></div>`).join("");
+  }
+
+  function start(){
+    buildTable(); buildRoles(); load(); paintRows(); compute();
+    INPUT_IDS.forEach(id => $(id).addEventListener("input", compute));
+    $("qSc").addEventListener("input", e => { quote.sc = e.target.value; compute(); });
+    $("qJc").addEventListener("input", e => { quote.jc = e.target.value; compute(); });
+    $("qSc").addEventListener("blur", compute); $("qJc").addEventListener("blur", compute);
+    $("pbody").addEventListener("input", e => { const t = e.target;
+      if (t.dataset.g) { groupPct[t.dataset.g] = t.value; compute(); return; }
+      if (!t.dataset.k) return; rows[+t.dataset.i][t.dataset.k] = t.value; compute(); });
+    $("reset").addEventListener("click", () => {
+      try { localStorage.removeItem(KEY); } catch(e){}
+      rows = DEFAULTS.map(d => ({pct:d[3], ovr:d[4]})); quote = {sc:"", jc:""}; groupPct = {...GROUP_DEFAULT};
+      const def = {headcount:1000};
+      Object.keys(def).forEach(id => $(id).value = def[id]);
+      paintRows(); compute();
+    });
+  }
+  start();
+})();
+</script>
+
+</body></html>
